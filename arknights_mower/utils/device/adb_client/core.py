@@ -119,7 +119,7 @@ class Client(object):
     def run(self, cmd: str) -> Optional[bytes]:
         """ run adb exec command """
         logger.debug(f'command: {cmd}')
-        error_limit = 3
+        error_limit = 20
         while True:
             try:
                 resp = self.session().exec(cmd)
@@ -127,8 +127,8 @@ class Client(object):
             except (socket.timeout, ConnectionRefusedError, RuntimeError) as e:
                 if error_limit > 0:
                     error_limit -= 1
-                    self.__exec('kill-server')
-                    self.__exec('start-server')
+                    # self.__exec('kill-server')
+                    # self.__exec('start-server')
                     time.sleep(10)
                     self.__init_device()
                     continue

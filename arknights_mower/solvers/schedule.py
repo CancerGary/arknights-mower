@@ -98,6 +98,7 @@ class Task(object):
         self.finish = finish
 
     def reset(self):
+        if self.start_up(): return
         if self.tag != 'per_hour':
             self.last_run = None
         self.pending = False
@@ -109,7 +110,7 @@ class Task(object):
     def start_up(self) -> bool:
         return self.tag == 'start_up'
 
-    def need_run(self, now: datetime.datetime = datetime.datetime.now()) -> bool:
+    def need_run(self, now: datetime.datetime = datetime.datetime.now(), new_schedule: bool = False) -> bool:
         if self.pending:
             return False
         if self.start_up():
@@ -121,6 +122,11 @@ class Task(object):
         if self.tag[:4] == 'day_':
             # 同一天 and 跑过了
             if self.last_run is not None and the_same_day(now, self.last_run):
+                return False
+            # 只有初始化时，跳过过时的任务
+            # self.last_run is None 会导致启动时没过期、长任务执行后变成过期导致没执行
+            if new_schedule and now.strftime('%H:%M') > self.tag.replace('_', ':')[4:]:
+                self.last_run = now
                 return False
             # 还没到时间
             if now.strftime('%H:%M') < self.tag.replace('_', ':')[4:]:
@@ -246,9 +252,10 @@ class ScheduleSolver(BaseSolver):
             now = datetime.datetime.now()
             if self.last_run is not None and the_same_day(self.last_run, now) is False:
                 self.new_day()
+            new_schedule = not bool(self.last_run)
             self.last_run = now
             for task in self.tasks:
-                if task.need_run(now):
+                if task.need_run(now, new_schedule):
                     self.pending_list.push(task)
 
             task = self.pending_list.pop()
