@@ -3,15 +3,14 @@ from __future__ import annotations
 import time
 import traceback
 
+from ..data import chapter_list, level_list, weekly_zones, zone_list
 from ..ocr import ocrhandle
 from ..utils import config
 from ..utils import typealias as tp
 from ..utils.image import scope2slice
 from ..utils.log import logger
-from ..utils.recognize import Scene, RecognizeError
+from ..utils.recognize import RecognizeError, Scene
 from ..utils.solver import BaseSolver, StrategyError
-from ..data import chapter_list, weekly_zones, level_list, zone_list
-
 
 BOTTOM_TAP_NUMER = 8
 
@@ -175,18 +174,21 @@ class OpeSolver(BaseSolver):
             self.wait_pre = 10
         self.wait_total = 0
         # 点击开始作战
-        # ope_start_SN 对应三周年活动愚人船的UI
-        ope_start = self.find('ope_start') or self.find('ope_start_SN')
+        # ope_start_SN 对应三周年活动愚人船的 UI
+        ope_start = self.find('ope_start', judge=False) or self.find('ope_start_SN', judge=False)
         if ope_start:
             self.tap(ope_start)
-        # 确定可以开始作战后扣除相应的消耗药剂或者源石
-        if self.recover_state == 1:
-            logger.info('use potion to recover sanity')
-            self.potion -= 1
-        elif self.recover_state == 2:
-            logger.info('use originite to recover sanity')
-            self.originite -= 1
-        self.recover_state = 0
+            # 确定可以开始作战后扣除相应的消耗药剂或者源石
+            if self.recover_state == 1:
+                logger.info('use potion to recover sanity')
+                self.potion -= 1
+            elif self.recover_state == 2:
+                logger.info('use originite to recover sanity')
+                self.originite -= 1
+            self.recover_state = 0
+        else:
+            # 与预期不符，等待一阵并重新截图
+            self.sleep(1)
 
     def operator_before_elimi(self) -> bool:
         # 如果每周剿灭完成情况未知，退回到终端主界面选择关卡
@@ -281,18 +283,19 @@ class OpeSolver(BaseSolver):
                 self.tap_element('ope_recover_originite')
                 return
             # 关闭恢复界面
-            if not self.tap_element('ope_recover_choose', 0.05, detected=True):
-                self.back()
+            self.back()
             return True
         elif self.recover_state:
             # 正在恢复中，防止网络波动
             self.sleep(3)
         else:
             # 选择药剂恢复体力
-            if not self.tap_element('ope_recover_choose', 0.95, detected=True):
+            if self.find('ope_recover_potion_empty') is not None:
                 # 使用次数未归零但已经没有药剂可以恢复体力了
+                logger.info('The potions have been used up.')
                 self.potion = 0
                 return
+            self.tap_element('ope_recover_potion_choose', 0.9, 0.75, judge=False)
             # 修改状态
             self.recover_state = 1
 
@@ -303,18 +306,19 @@ class OpeSolver(BaseSolver):
                 self.tap_element('ope_recover_potion')
                 return
             # 关闭恢复界面
-            if not self.tap_element('ope_recover_choose', 0.05, detected=True):
-                self.back()
+            self.back()
             return True
         elif self.recover_state:
             # 正在恢复中，防止网络波动
             self.sleep(3)
         else:
             # 选择源石恢复体力
-            if not self.tap_element('ope_recover_choose', 0.95, detected=True):
+            if self.find('ope_recover_originite_empty') is not None:
                 # 使用次数未归零但已经没有源石可以恢复体力了
+                logger.info('The originites have been used up.')
                 self.originite = 0
                 return
+            self.tap_element('ope_recover_originite_choose', 0.9, 0.85, judge=False)
             # 修改状态
             self.recover_state = 2
 

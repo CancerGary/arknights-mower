@@ -1,18 +1,19 @@
 from __future__ import annotations
 
-import cv2
 import pickle
-import sklearn
 import traceback
-import numpy as np
 from typing import Optional, Tuple
+
+import cv2
+import numpy as np
+import sklearn
 from matplotlib import pyplot as plt
 from skimage.metrics import structural_similarity as compare_ssim
 
+from .. import __rootdir__
 from . import typealias as tp
 from .image import cropimg
 from .log import logger
-from .. import __rootdir__
 
 MATCHER_DEBUG = False
 FLANN_INDEX_KDTREE = 0
@@ -70,7 +71,7 @@ class Matcher(object):
             logger.debug(f'match success: {score}')
             return rect  # success in matching
 
-    def score(self, query: tp.GrayImage, draw: bool = False, scope: tp.Scope = None) -> Optional(Tuple[tp.Scope, tp.Score]):
+    def score(self, query: tp.GrayImage, draw: bool = False, scope: tp.Scope = None, only_score: bool = False) -> Optional(Tuple[tp.Scope, tp.Score]):
         """ scoring of image matching """
         try:
             # if feature points is empty
@@ -210,7 +211,10 @@ class Matcher(object):
             ssim = compare_ssim(query, rect_img, multichannel=True)
 
             # return final rectangle and four dimensions of scoring
-            return rect, (good_matches_rate, good_area_rate, hash, ssim)
+            if only_score:
+                return (good_matches_rate, good_area_rate, hash, ssim)
+            else:
+                return rect, (good_matches_rate, good_area_rate, hash, ssim)
 
         except Exception as e:
             logger.error(e)
