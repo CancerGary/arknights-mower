@@ -73,6 +73,8 @@ class ShopSolver(BaseSolver):
                 ocr = ocr[0]
                 if ocr[1] not in shop_items:
                     ocr[1] = ocr_rectify(img, ocr, shop_items, '物品名称')
+                if ocr[1] == '加急许可': # or ocr[1] == '家具零件' or ocr[1] == '碳素':
+                    continue
                 valid.append((seg, ocr[1]))
         logger.info(f'商店内可购买的物品：{[x[1] for x in valid]}')
         if len(valid) == 0:

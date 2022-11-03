@@ -285,6 +285,8 @@ class BaseSolver:
                     self.tap((mid_y, mid_y))
                 elif self.scene() == Scene.INFRA_ARRANGE_CONFIRM:
                     self.tap((self.recog.w // 3, self.recog.h - 10))
+                elif self.scene() == Scene.EVENT_FORUM:
+                    self.tap_element('event_forum_close')
                 elif self.scene() == Scene.UNKNOWN:
                     raise RecognizeError('Unknown scene')
                 elif pre_scene is None or pre_scene != self.scene():

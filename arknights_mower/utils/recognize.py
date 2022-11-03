@@ -206,6 +206,8 @@ class Recognizer(object):
             self.scene = Scene.LOADING
         elif self.find('arrange_order_options_scene') is not None:
             self.scene = Scene.INFRA_ARRANGE_ORDER
+        elif self.find('event_forum') is not None:
+            self.scene = Scene.EVENT_FORUM
         else:
             self.scene = Scene.UNKNOWN
             self.device.check_current_focus()

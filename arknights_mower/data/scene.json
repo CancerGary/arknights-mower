@@ -239,6 +239,10 @@
         "label": "RECRUIT_AGENT",
         "comment": "开包干员展示"
     },
+    "1001": {
+        "label": "EVENT_FORUM",
+        "comment": "产业合作洽谈会"
+    },
     "9998": {
         "label": "LOADING",
         "comment": "场景跳转时的等待界面"
