@@ -366,7 +366,7 @@ class BaseConstructSolver(BaseSolver):
             room[i, 1] = min(room[i, 1], self.recog.h)
 
         # 点击进入
-        self.tap(room[0], interval=3)
+        self.tap(room, interval=3)
         while self.find('control_central') is not None:
             self.tap(room[0], interval=3)
 
